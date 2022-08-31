@@ -1,0 +1,1204 @@
+#include <iostream>
+#include <string.h>
+#include <conio.h>
+#include <Windows.h>
+#include <stdlib.h>
+
+using namespace std;
+
+#define fichas 9;
+
+// Estructuras antes de las funciones sino no deja utilizarlas
+struct jugador1 {
+    string nombre;
+    short color;
+    short n_fichas;
+    char ficha1;
+    bool ganador;
+};
+struct jugador2 {
+    string nombre;
+    short color;
+    short n_fichas;
+    char ficha2;
+    bool ganador;
+};
+struct posicion {
+    bool esValido;
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    int x3;
+    int y3;
+    int x4;
+    int y4;
+};
+// declaracion struct molino
+struct molino {
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    int x3;
+    int y3;
+};
+
+void Menu(int& opcion) {
+    cout << "---------------------------------------------------------" << endl;
+    cout << "                        GRUPO 3" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    cout << "-Jorge Yum (U202210838)\n-Salvador Salinas (U20221B127)\n-Piero Delgado (U202210749)\n-Daniel Ruiz (U202210764)\n";
+    cout << "---------------------------------------------------------" << endl;
+    cout << "                   Juego del Molino" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    cout << "1. Iniciar juego" << endl;
+    cout << "2. Instrucciones" << endl;
+    cout << "3. Salir" << endl;
+    cin >> opcion;
+    cout << "---------------------------------------------------------" << endl;
+    return;
+}
+void Instrucciones() {
+    cout << "El juego se divide en: " << endl;
+    cout << "+Fase 1: Cada jugador coloca sus fichas" << endl;
+    cout << "+Fase 2 y 3: Cada jugador podra mover sus fichas y" << endl;
+    cout << " capturar fichas del oponente";
+    cout << endl << "REGLAS" << endl;
+    cout << "-Al iniciar el juego, cada jugador tendra 9\n fichas, las cuales debe "
+        "colocar en el tablero." << endl;
+    cout << "(Existe la posibilidad de crear molinos en esta fase)." << endl;
+    cout << "-El jugador debe hacer un molino (3 en raya) \n sea de forma horizontal o vertical." << endl;
+    cout << "-Si el jugador logra hacer un molino, podra\n eliminar una de las fichas del oponente." << endl;
+    cout << "-El jugador no puede capturar una ficha oponente\n que forme parte de un molino." << endl;
+    cout << "-Cuando todas las fichas se encuentren en el\n tablero, por turnos, cada uno podra mover una\n ficha para formar un molino." << endl;
+    cout << "-Al ingresar la posicion de la ficha,\n debe colocar el valor x (indica la columna), y\n luego el valor de y (indica la fila)\n Ejemplo: x = 1, y = 4" << endl;
+    cout << "-Solo podra colocar y mover una ficha en un espacio\n que este libre, el cual esta indicado por 'O'." << endl;
+    cout << "-Si un jugador se queda con solo 3 fichas, podra\n mover las fichas a cualquier espacio disponible sin\n limitantes." << endl;
+    cout << "-El juego termina cuando un jugador tiene menos \n de 3 fichas o no puede moverlas." << endl;
+    cout << "-Gana el jugador con mas fichas" << endl;
+    cout << "Pulse una tecla para volver al menu..." << endl;
+    _getch();
+    return;
+}
+void nombre_color(struct jugador1& j, struct jugador2& j2) {
+    int confirm, confirm2;
+    cout << "             DATOS DEL PRIMER JUGADOR" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    do {
+        cout << "Ingrese el nombre del primer jugador: " << endl;
+        cin >> j.nombre;
+        cout << "Confirma si deseas que " << j.nombre
+            << " sea tu nombre (1: si, 0: no): " << endl;
+        cin >> confirm;
+    } while (confirm != 1);
+    do {
+        cout << "Ingrese el color de las fichas para " << j.nombre << endl;
+        cout << "1. Fichas de color negro" << endl;
+        cout << "2. Fichas de color blanco" << endl;
+        cout << "Nota: Al ingresar un color, el otro color sera asignado\nautomaticamente al siguiente jugador" << endl;
+        cin >> j.color;
+        cout << "Confirma si deseas que tu color de ficha sea ";
+        if (j.color == 1) cout << "negro";
+        if (j.color == 2) cout << "blanco";
+        cout << " (1: si, 0: no): " << endl;
+        cin >> confirm2;
+    } while (j.color != 1 && j.color != 2 || confirm2 != 1);
+    cout << "---------------------------------------------------------" << endl;
+    cout << "             DATOS DEL SEGUNDO JUGADOR" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    do {
+        cout << "Ingrese el nombre del segundo jugador: " << endl;
+        cin >> j2.nombre;
+        cout << "Confirma si deseas que " << j2.nombre
+            << " sea tu nombre (1: si, 0: no): " << endl;
+        cin >> confirm;
+    } while (confirm != 1);
+    if (j.color == 1) {
+        cout << "El color de las fichas de " << j2.nombre << " sera blanco." << endl;
+        j2.color = 2;
+    }
+    if (j.color == 2) {
+        cout << "El color de las fichas de " << j2.nombre << " sera negro." << endl;
+        j2.color = 1;
+    }
+}
+void iniciar_tablero(char**& tablero) {
+    tablero[3][3] = 32; //Espacio
+    // Espacios disponibles para colocar una ficha
+    tablero[0][0] = 'O';
+    tablero[0][3] = 'O';
+    tablero[0][6] = 'O';
+    tablero[1][1] = 'O';
+    tablero[1][3] = 'O';
+    tablero[1][5] = 'O';
+    tablero[2][2] = 'O';
+    tablero[2][3] = 'O';
+    tablero[2][4] = 'O';
+    tablero[3][0] = 'O';
+    tablero[3][1] = 'O';
+    tablero[3][2] = 'O';
+    tablero[3][4] = 'O';
+    tablero[3][5] = 'O';
+    tablero[3][6] = 'O';
+    tablero[4][2] = 'O';
+    tablero[4][3] = 'O';
+    tablero[4][4] = 'O';
+    tablero[5][1] = 'O';
+    tablero[5][3] = 'O';
+    tablero[5][5] = 'O';
+    tablero[6][0] = 'O';
+    tablero[6][3] = 'O';
+    tablero[6][6] = 'O';
+    // Espacios reservados (lineas)
+    tablero[0][1] = '|';
+    tablero[0][2] = '|';
+    tablero[0][4] = '|';
+    tablero[0][5] = '|';
+    tablero[1][0] = '-';
+    tablero[1][2] = '|';
+    tablero[1][4] = '|';
+    tablero[1][6] = '-';
+    tablero[2][0] = '-';
+    tablero[2][1] = '-';
+    tablero[2][5] = '-';
+    tablero[2][6] = '-';
+    tablero[4][0] = '-';
+    tablero[4][1] = '-';
+    tablero[4][5] = '-';
+    tablero[4][6] = '-';
+    tablero[5][0] = '-';
+    tablero[5][2] = '|';
+    tablero[5][4] = '|';
+    tablero[5][6] = '-';
+    tablero[6][1] = '|';
+    tablero[6][2] = '|';
+    tablero[6][4] = '|';
+    tablero[6][5] = '|';
+    // Primera fila (Coordenadas de x)
+    cout << "   1 2 3 4 5 6 7\n";
+    for (int j = 0; j < 7; j++) {
+        cout << j + 1 << "  "; // Primera columna (Coordenadas de y)
+        for (int i = 0; i < 7; i++)
+            cout << tablero[i][j] << " "; // Imprimir el tablero inicial
+        cout << "y" << endl;
+    }
+    cout << "   x x x x x x x\n";
+}
+void asignar_ficha(char**& tablero, char ficha, short& x_new, short& y_new) {
+    int x, y;
+    cout << "Ingrese las coordenadas para colocar su ficha\n";
+    do {
+        do {
+            cout << "Ingrese el valor de x: ";
+            cin >> x;
+            if (x < 1 || x > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+
+        } while (x < 1 || x > 7);
+        do {
+            cout << "Ingrese el valor de y: ";
+            cin >> y;
+            if (y < 1 || y > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+        } while (y < 1 || y > 7);
+
+        if (tablero[x - 1][y - 1] != 'O') {
+            cout << "La posicion ingresada no se encuentra disponible." << endl;
+            cout << "Intente nuevamente." << endl;
+        }
+    } while (tablero[x - 1][y - 1] != 'O');
+    tablero[x - 1][y - 1] = ficha;
+    x_new = x;  y_new = y;
+}
+void imprimir(char**& tablero, int color, int color2) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    cout << "   1 2 3 4 5 6 7\n";
+    for (int j = 0; j < 7; j++) {
+        cout << j + 1 << "  ";
+        for (int i = 0; i < 7; i++) {
+            if (color == 1) {
+                if (tablero[i][j] == '*') SetConsoleTextAttribute(hConsole, 144);
+            }
+            if (color == 2) {
+                if (tablero[i][j] == '*') SetConsoleTextAttribute(hConsole, 159);
+            }
+            if (color2 == 1) {
+                if (tablero[i][j] == '#') SetConsoleTextAttribute(hConsole, 144);
+            }
+            if (color2 == 2) {
+                if (tablero[i][j] == '#') SetConsoleTextAttribute(hConsole, 159);
+            }
+            cout << tablero[i][j] << " ";
+            SetConsoleTextAttribute(hConsole, 144);
+        }
+        cout << "y" << endl;
+    }
+    cout << "   x x x x x x x\n";
+    SetConsoleTextAttribute(hConsole, 144);
+}
+void vuelo(char**& tablero, char ficha, short& x_new, short& y_new, int color, int color2) {
+    int x, y;
+    cout << "VUELO DISPONIBLE" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    cout << "En esta fase del juego, puede mover la ficha a" << endl;
+    cout << "cualquier espacio disponible" << endl;
+    cout << "Ingrese las coordenadas de la ficha a mover" << endl;
+    do {
+        do {
+            cout << "Ingrese el valor de x: ";
+            cin >> x;
+            if (x < 1 || x > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+
+        } while (x < 1 || x > 7);
+        do {
+            cout << "Ingrese el valor de y: ";
+            cin >> y;
+            if (y < 1 || y > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+        } while (y < 1 || y > 7);
+        if (tablero[x - 1][y - 1] != ficha) {
+            cout << "No hay una ficha suya en esta posicion." << endl;
+            cout << "Intente nuevamente." << endl;
+        }
+    } while (tablero[x - 1][y - 1] != ficha);
+
+    cout << "Ingrese las coordenadas donde desea mover la ficha" << endl;
+    do {
+        do {
+            cout << "Ingrese el valor de x: ";
+            cin >> x_new;
+            if (x_new < 1 || x_new > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+
+        } while (x_new < 1 || x_new > 7);
+        do {
+            cout << "Ingrese el valor de y: ";
+            cin >> y_new;
+            if (y_new < 1 || y_new > 7)
+                cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+        } while (y_new < 1 || y_new > 7);
+        if (tablero[x_new - 1][y_new - 1] != 'O') {
+            cout << "La posicion ingresada no se encuentra disponible." << endl;
+            cout << "Intente nuevamente." << endl;
+        }
+    } while (tablero[x_new - 1][y_new - 1] != 'O');
+    tablero[x - 1][y - 1] = 'O';
+    tablero[x_new - 1][y_new - 1] = ficha;
+    imprimir(tablero, color, color2);
+}
+posicion PosicionValida(char**& tablero, int x, int y)
+{
+    posicion p;
+    int opcion = 0;
+    int x1, y1, x2, y2, x3, y3, x4, y4;
+    //inicializa
+    p.esValido = false;
+    p.x1 = p.x2 = p.x3 = p.x4 = -1;
+    p.y1 = p.y2 = p.y3 = p.y4 = -1;
+    //tablero[0][0]
+    if (x == 1 && y == 1)
+    {
+        //par 1
+        x1 = 0; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 0; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[0][6]
+    if (x == 1 && y == 7)
+    {
+        //par 1
+        x1 = 0; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 6; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //simetria horizontal capa3-R
+    //tablero[6][0]
+    if (x == 7 && y == 1)
+    {
+        //par 1
+        x1 = 3; y1 = 0; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }        //par 2
+        x2 = 6; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[6][6]
+    if (x == 7 && y == 7)
+    {
+        //par 1
+        x1 = 6; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 6; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //simetria horizontal capa2-L
+    //tablero[1][1]
+    if (x == 2 && y == 2)
+    {
+        //par 1
+        x1 = 3; y1 = 1; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 1; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[1][5]
+    if (x == 2 && y == 6)
+    {
+        //par 1
+        x1 = 1; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 5; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //simetria horizontal capa2-R
+    //tablero[5][1]
+    if (x == 6 && y == 2)
+    {
+        //par 1
+        x1 = 3; y1 = 1; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 5; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[5][5]
+    if (x == 6 && y == 6)
+    {
+        //par 1
+        x1 = 5; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 5;
+        x1--; y1--;//corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //simetria horizontal capa1-L
+    //tablero[2][2]
+    if (x == 3 && y == 3)
+    {
+        //par 1
+        x1 = 3; y1 = 2; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 2; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[2][4]
+    if (x == 3 && y == 5)
+    {
+        //par 1
+        x1 = 2; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 3; y2 = 4; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //simetria horizontal capa1-R
+    //tablero[4][2]
+    if (x == 5 && y == 3)
+    {
+        //par 1
+        x1 = 3; y1 = 2; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par 2
+        x2 = 4; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //tablero[4][4]
+    if (x == 5 && y == 5)
+    {
+        //par1
+        x1 = 4; y1 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x1;
+            p.y2 = y1;
+        }
+        //par2
+        x2 = 3; y2 = 4; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+    }
+    //3opciones
+    //SimetríaVertical
+    //tablero[3][2]
+    if (x == 4 && y == 3)
+    {
+        //par1
+        x1 = 3; y1 = 1; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 2; y2 = 2; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 4; y3 = 2; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //tablero[3][4]
+    if (x == 4 && y == 5)
+    {
+        //par1
+        x1 = 3; y1 = 5; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 2; y2 = 4; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 4; y3 = 4; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //4opciones
+    //simetríavertical
+    //tablero[3][1]
+    if (x == 4 && y == 2)
+    {
+        //par1
+        x1 = 1; y1 = 1; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 5; y2 = 1; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 3; y3 = 0; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+        //par4
+        x4 = 3; y4 = 2; //corrige indice cero
+        if (tablero[x4][y4] == 'O')
+        {
+            opcion++;
+            p.x4 = x4;
+            p.y4 = y4;
+        }
+    }
+    //tablero[3][5]
+    if (x == 4 && y == 6)
+    {
+        //par1
+        x1 = 1; y1 = 5; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 5; y2 = 5; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }        //par3
+        x3 = 3; y3 = 4; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+        //par4
+        x4 = 3; y4 = 6; //corrige indice cero
+        if (tablero[x4][y4] == 'O')
+        {
+            opcion++;
+            p.x4 = x4;
+            p.y4 = y4;
+        }
+    }
+    //simetria horizontal
+    //tablero[1][3]
+    if (x == 2 && y == 4)
+    {
+        //par1
+        x1 = 1; y1 = 1; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 1; y2 = 5; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 0; y3 = 3; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+        //par4
+        x4 = 2; y4 = 3; //corrige indice cero
+        if (tablero[x4][y4] == 'O')
+        {
+            opcion++;
+            p.x4 = x4;
+            p.y4 = y4;
+        }
+    }
+    //tablero[5][3]
+    if (x == 6 && y == 4)
+    {
+        //par1
+        x1 = 4; y1 = 3; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 6; y2 = 3; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 5; y3 = 1; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+        //par4
+        x4 = 5; y4 = 5; //corrige indice cero
+        if (tablero[x4][y4] == 'O')
+        {
+            opcion++;
+            p.x4 = x4;
+            p.y4 = y4;
+        }
+    }
+    //1opcion
+    //simetria vertical-L
+    //tablero[0][3]
+    if (x == 1 && y == 4)
+    {
+        //par1
+        x1 = 0; y1 = 0; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 0; y2 = 6; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 1; y3 = 3; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //tablero[2][3]
+    if (x == 3 && y == 4)
+    {
+        //par1
+        x1 = 2; y1 = 2; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 2; y2 = 4; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }        //par3
+        x3 = 1; y3 = 3; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //simetria vertical-R
+    //tablero[6][3]
+    if (x == 7 && y == 4)
+    {
+        //par1
+        x1 = 6; y1 = 0; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 6; y2 = 6; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }        //par3
+        x3 = 5; y3 = 3; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //tablero[4][3]
+    if (x == 5 && y == 4)
+    {
+        //par1
+        x1 = 4; y1 = 2; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 4; y2 = 4; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 5; y3 = 3; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //simetria horizontal
+    //tablero[3][0]
+    if (x == 4 && y == 1)
+    {
+        //par1
+        x1 = 0; y1 = 0; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 6; y2 = 0; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 3; y3 = 1; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //tablero[3][6]
+    if (x == 4 && y == 7)
+    {
+        //par1
+        x1 = 0; y1 = 6; //corrige indice cero
+        if (tablero[x1][y1] == 'O')
+        {
+            opcion++;
+            p.x1 = x1;
+            p.y1 = y1;
+        }
+        //par2
+        x2 = 6; y2 = 6; //corrige indice cero
+        if (tablero[x2][y2] == 'O')
+        {
+            opcion++;
+            p.x2 = x2;
+            p.y2 = y2;
+        }
+        //par3
+        x3 = 3; y3 = 5; //corrige indice cero
+        if (tablero[x3][y3] == 'O')
+        {
+            opcion++;
+            p.x3 = x3;
+            p.y3 = y3;
+        }
+    }
+    //evalua si hay opciones
+    if (opcion == 0) p.esValido = false;
+    else p.esValido = true;
+    //devuelve resultados
+    return p;
+}
+void mover(char**& tablero, char ficha, short& x_new, short& y_new, int color, int color2, bool& ganador)
+{
+    int opcion = 0;
+    int x, y, cont = 0;
+    posicion p;
+    do
+    {
+        //para hacer: detetcar si el jugador puede movel aguna ficha, si no puee se termina el juego
+        //obtiene posicion a mover
+        do
+        {
+            //pide las coordenadas de la ficha a mover           
+            cout << "Ingrese las coordenadas de la ficha a mover" << endl;
+            do
+            {
+                cout << "Ingrese el valor de x: ";
+                cin >> x;
+                if (x < 1 || x > 7)
+                    cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+            } while (x < 1 || x > 7);
+            do {
+                cout << "Ingrese el valor de y: ";
+                cin >> y;
+                if (y < 1 || y > 7)
+                    cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+            } while (y < 1 || y > 7);
+            if (tablero[x - 1][y - 1] != ficha) {
+                cout << "No hay una ficha suya en esta posicion." << endl;
+                cout << "Intente nuevamente." << endl;
+            }
+        } while (tablero[x - 1][y - 1] != ficha);
+        p = PosicionValida(tablero, x, y);
+        if (p.esValido == false) { cout << "La posicion seleccionada es invalida, puede no tener movimientos permisibles" << endl; cont++; }
+        //Si se selecciona muchas veces de forma equivocada se pregunta si desea continuar
+        if (cont == 4)
+        {
+            cout << "Multiples intentos fallidos, ¿desea continuar?" << endl;
+            cout << "1. Rendirse" << endl;
+            cout << "2. Continuar" << endl;
+            cout << "Digite el numero correspondiente a la opcion" << endl;
+            cin >> opcion;
+
+            if (opcion == 1) { ganador = true; return; }
+            if (opcion == 2) cout << "Recuerde, si selecciona una posicion sin movimientos 6 veces mas, perdera automaticamente" << endl;
+        }
+        if (cont == 10) { ganador = true; return; }
+        //evalua si posicion es valida
+    } while (p.esValido == false);
+    cout << "En esta fase del juego, solo lo puede mover a una posicion\nadyacente" << endl;
+    cout << "Ingrese las coordenadas donde desea mover la ficha" << endl;
+    cout << "(El espacio tiene que estar libre)" << endl;
+    bool nuevaposvalida = false;
+    do {
+        nuevaposvalida = false;
+        do {
+            cout << "Ingrese el valor de x: ";
+            cin >> x_new;
+            if (x_new < 1 || x_new > 7) cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+        } while (x_new < 1 || x_new > 7);
+        do {
+            cout << "Ingrese el valor de y: ";
+            cin >> y_new;
+            if (y_new < 1 || y_new > 7) cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+        } while (y_new < 1 || y_new > 7);
+        //verifica que nueva posicion se encuentre dentro de las posiciones validas
+        if ((x_new - 1) == p.x1 && (y_new - 1) == p.y1) { nuevaposvalida = true; }
+        if ((x_new - 1) == p.x2 && (y_new - 1) == p.y2) { nuevaposvalida = true; }
+        if ((x_new - 1) == p.x3 && (y_new - 1) == p.y3) { nuevaposvalida = true; }
+        if ((x_new - 1) == p.x4 && (y_new - 1) == p.y4) { nuevaposvalida = true; }
+    } while (nuevaposvalida == false);
+    tablero[x - 1][y - 1] = 'O';
+    tablero[x_new - 1][y_new - 1] = ficha;
+    imprimir(tablero, color, color2);
+}
+bool esmolino(char**& tablero, char ficha_jugador, molino lstmolinos[], short x, short y) {
+    bool res = false;
+    int i = 0;
+    molino mol;
+    x--; y--;
+    for (i = 0; i <= 15; i++) {
+        mol = lstmolinos[i];
+        if (((x == mol.x1) && (y == mol.y1)) || ((x == mol.x2) && (y == mol.y2)) || ((x == mol.x3) && (y == mol.y3))) {
+            //la posicion del jugador es un posible molino
+            int p1 = 0; if (tablero[mol.x1][mol.y1] == ficha_jugador) { p1 = 1; }
+            int p2 = 0; if (tablero[mol.x2][mol.y2] == ficha_jugador) { p2 = 1; }
+            int p3 = 0; if (tablero[mol.x3][mol.y3] == ficha_jugador) { p3 = 1; }
+
+            if ((p1 + p2 + p3) == 3) {
+                //es un molino del jugador
+                res = true;
+                break;
+            }
+        }
+    }
+    return (res);
+}
+void capturar(char**& tablero, char ficha_jugador, char ficha_captura, molino lstmolinos[], short& fichas_enemigas, short x, short y, int color, int color2)
+{
+    bool SeCaptura = esmolino(tablero, ficha_jugador, lstmolinos, x, y);
+    bool CapturaValida = false;
+    bool val = false;
+    int cont = 0;
+    if (SeCaptura == true)
+    {
+        cout << "---------------------------------------------------------" << endl;
+        cout << "                   ¡Has hecho un molino!" << endl;
+        cout << "               Tienes una captura disponible" << endl;
+        cout << "---------------------------------------------------------" << endl;
+        int x, y;
+        cout << "Ingrese las coordenadas de la ficha que desea capturar" << endl;
+        cout << "Debe ser un espacio ocupado por la ficha oponente (" << ficha_captura << ")" << endl;
+        do {
+            do {
+                cout << "Ingrese el valor de x: ";
+                cin >> x;
+                if (x < 1 || x > 7) cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+            } while (x < 1 || x > 7);
+            do {
+                cout << "Ingrese el valor de y: ";
+                cin >> y;
+                if (y < 1 || y > 7)cout << "El valor ingresado no es valido. Intente nuevamente." << endl;
+            } while (y < 1 || y > 7);
+            if (tablero[x - 1][y - 1] != ficha_captura) {
+                cout << "No hay una ficha oponente en esta posicion." << endl;
+                cout << "Intente nuevamente." << endl;
+            }
+            if (fichas_enemigas > 3)
+                CapturaValida = !esmolino(tablero, ficha_captura, lstmolinos, x, y);
+            else
+                CapturaValida = true;
+            if (CapturaValida == false)
+                cout << "Esa ficha pertenece a un molino, no se puede capturar." << endl;
+
+        } while ((y < 1 && x < 1 || y > 7 && x > 7) || tablero[x - 1][y - 1] != ficha_captura || CapturaValida != true);
+
+        tablero[x - 1][y - 1] = 'O';
+        fichas_enemigas--;
+        imprimir(tablero, color, color2);
+    }
+}
+int main() {
+    setlocale(LC_ALL, "spanish");
+    system("Color 90");
+    // Inicializacion de variable:
+    int opcion = 0;
+    short x_new, y_new;
+    struct jugador1 j1; // Estructuras con los datos de Nombre Color y N de fichas
+    struct jugador2 j2;
+
+    // todos los molinos validos posibles
+    molino lstmolinos[16]; //20
+       //creacion de lista de molinos validos
+    lstmolinos[0] = molino{ 0, 0, 3,0,6,0 };
+    lstmolinos[1] = molino{ 1, 1, 3,1,5,1 };
+    lstmolinos[2] = molino{ 2, 2, 3,2,4,2 };
+    lstmolinos[3] = molino{ 0, 3, 1,3,2,3 };
+    lstmolinos[4] = molino{ 4, 3, 5,3,6,3 };
+    lstmolinos[5] = molino{ 2, 4, 3,4,4,4 };
+    lstmolinos[6] = molino{ 1, 5, 3,5,5,5 };
+    lstmolinos[7] = molino{ 0, 6, 3,6,6,6 };
+    lstmolinos[8] = molino{ 0, 0, 0,3,0,6 };
+    lstmolinos[9] = molino{ 1, 1, 1,3,1,5 };
+    lstmolinos[10] = molino{ 2, 2, 2,3,2,4 };
+    lstmolinos[11] = molino{ 3, 0, 3,1,3,2 };
+    lstmolinos[12] = molino{ 3, 4, 3,5,3,6 };
+    lstmolinos[13] = molino{ 4, 2, 4,3,4,4 };
+    lstmolinos[14] = molino{ 5, 1, 5,3,5,5 };
+    lstmolinos[15] = molino{ 6, 0, 6,3,6,6 };
+    // Creacion del arreglo para el tablero
+    char** tablero = new char* [7];
+    for (int i = 0; i < 7; i++)
+        tablero[i] = new char[7];
+
+    do {
+        Menu(opcion);
+        switch (opcion) {
+        case 1:
+            j1.n_fichas = 9;
+            j1.ficha1 = '*'; //ficha para jugador 1
+            j1.ganador = false;
+            j2.ficha2 = '#'; //ficha para jugador 2
+            j2.n_fichas = 9;
+            j2.ganador = false;
+            nombre_color(j1, j2);
+            cout << "---------------------------------------------------------" << endl;
+            cout << "               Fase 1: Colocar fichas" << endl;
+            cout << "---------------------------------------------------------" << endl;
+            cout << j1.nombre << " vs. " << j2.nombre << endl;
+            cout << "Ficha de " << j1.nombre << ": " << j1.ficha1;
+            if (j1.color == 1) cout << " (negro)" << endl;
+            if (j1.color == 2) cout << " (blanco)" << endl;
+            cout << "Ficha de " << j2.nombre << ": " << j2.ficha2;
+            if (j2.color == 1) cout << " (negro)" << endl;
+            if (j2.color == 2) cout << " (blanco)" << endl;
+            cout << "---------------------------------------------------------" << endl;
+            iniciar_tablero(tablero);
+            cout << "Recuerde que: \n-x indica la columna\n-y indica la fila\n";
+            cout << "-Solo puede colocar una ficha en los espacios con 'O'\n";
+            for (int c = 9; c > 0; c--) {
+                //Jugador1
+                cout << "---------------------------------------------------------" << endl;
+                cout << "Turno de " << j1.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+                asignar_ficha(tablero, j1.ficha1, x_new, y_new);
+                imprimir(tablero, j1.color, j2.color);
+                cout << "Fichas restantes: " << c - 1 << endl;
+                capturar(tablero, j1.ficha1, j2.ficha2, lstmolinos, j2.n_fichas, x_new, y_new, j1.color, j2.color);
+                //Jugador2
+                cout << "---------------------------------------------------------" << endl;
+                cout << "Turno de " << j2.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+                asignar_ficha(tablero, j2.ficha2, x_new, y_new);
+                imprimir(tablero, j1.color, j2.color);
+                cout << "Fichas restantes: " << c - 1 << endl;
+                capturar(tablero, j2.ficha2, j1.ficha1, lstmolinos, j1.n_fichas, x_new, y_new, j1.color, j2.color);
+            }
+            if (j1.ganador == true || j2.ganador == true) break;
+            cout << "---------------------------------------------------------" << endl;
+            cout << "            Fase 2 y 3: Mover y capturar" << endl;
+            cout << "---------------------------------------------------------" << endl;
+            while (j1.ganador == false && j2.ganador == false) {
+                //Jugador 1
+                cout << "---------------------------------------------------------" << endl;
+                cout << "Turno de " << j1.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+                if (j1.n_fichas == 3)
+                    vuelo(tablero, j1.ficha1, x_new, y_new, j1.color, j2.color);
+
+                else
+                    mover(tablero, j1.ficha1, x_new, y_new, j1.color, j2.color, j2.ganador);
+                capturar(tablero, j1.ficha1, j2.ficha2, lstmolinos, j2.n_fichas, x_new, y_new, j1.color, j2.color);
+                if (j2.n_fichas <= 2)
+                {
+                    j1.ganador = true; break;
+                }
+                //Jugador 2
+                cout << "---------------------------------------------------------" << endl;
+                cout << "Turno de " << j2.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+                if (j2.n_fichas == 3)
+                    vuelo(tablero, j2.ficha2, x_new, y_new, j1.color, j2.color);
+
+                else
+                    mover(tablero, j2.ficha2, x_new, y_new, j1.color, j2.color, j1.ganador);
+                capturar(tablero, j2.ficha2, j1.ficha1, lstmolinos, j1.n_fichas, x_new, y_new, j1.color, j2.color);
+                if (j1.n_fichas <= 2) {
+                    j2.ganador = true; break;
+                }
+            }
+            //Declarar ganador
+            if (j1.ganador == true) {
+                cout << "---------------------------------------------------------" << endl;
+                cout << "              GANADOR: " << j1.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+            }
+            if (j2.ganador == true) {
+                cout << "---------------------------------------------------------" << endl;
+                cout << "              GANADOR: " << j2.nombre << endl;
+                cout << "---------------------------------------------------------" << endl;
+            }
+            break;
+        case 2:
+            Instrucciones();
+            break;
+        case 3:
+            cout << "Presione cualquier tecla para salir..." << endl;
+            break;
+        default:
+            cout << "Opcion invalida, intente con otra opcion" << endl;
+            break;
+        }
+    } while (opcion != 3);
+
+    for (int i = 0; i < 7; i++)
+        delete[] tablero[i];
+
+    delete[] tablero;
+    _getch();
+    return 0;
+}
